@@ -1,0 +1,23 @@
+# Environnements Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Secrets : seul .env.example est versionné
+.env
+
+# Données générées (régénérables par une commande, donc non versionnées)
+data/
+
+# Modèles entraînés (régénérables)
+models/*
+!models/.gitkeep
+
+# Systèmes et éditeurs
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
