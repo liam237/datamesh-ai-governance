@@ -64,7 +64,7 @@ results/metrics/    Métriques produites (une source unique pour le mémoire)
 results/figures/    Graphiques produits
 models/             Modèles entraînés
 tests/              Tests automatiques
-docs/               Documentation complémentaire
+docs/               Documentation complémentaire (dont sources.md)
 ```
 
 Chaque dossier contient un petit `README.md` qui explique son rôle.
@@ -91,7 +91,7 @@ Sans `make` (par exemple sous Windows) : `python -m pytest` et `python -m pipeli
 |---|---|
 | 0. Cadrage | Terminé |
 | 1. Initialisation du dépôt | Terminé |
-| 2. Générateur de données | À faire |
+| 2. Générateur de données | En cours (contrats écrits) |
 | 3. Exploration des données | À faire |
 | 4. Références simples | À faire |
 | 5. Mécanismes niveau 1 | À faire |

@@ -1,0 +1,309 @@
+# Contrat de données n° 1 : domaine Ventes (producteur) -> domaine Finance (consommateur)
+# Format : Open Data Contract Standard (ODCS) v3.1.0, projet Bitol / Linux Foundation.
+# Ce fichier décrit ce que la Finance ATTEND. Il n'affirme pas que les données
+# sont parfaites : ce sont les mécanismes du projet qui vérifient qu'il est respecté.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: c1-ventes-transactions
+name: Transactions quotidiennes des Ventes
+version: 1.0.0
+status: active
+domain: ventes
+
+description:
+  purpose: >-
+    Mettre à disposition de la Finance, chaque jour, l'ensemble des transactions
+    de la veille (ventes et remboursements), pour le calcul du chiffre d'affaires
+    et le reporting.
+  usage: >-
+    Calcul du chiffre d'affaires net (ventes moins remboursements), suivi par
+    catégorie, pays et segment de clientèle.
+  limitations: >-
+    Données simulées dans le cadre d'une preuve de concept. Les lignes jugées
+    suspectes sont mises en quarantaine et ne sont publiées qu'après validation
+    humaine : un léger écart avec le flux brut est donc normal.
+
+team:
+  name: Domaine Ventes
+  members:
+    - username: dpo.ventes
+      name: Data Product Owner Ventes
+      role: owner
+      description: Propriétaire du contrat. Alerté en cas de violation, il décide.
+    - username: steward.ventes
+      name: Data Steward Ventes
+      role: data steward
+      description: Valide ou rejette les lignes mises en quarantaine.
+
+roles:
+  - role: finance_analyste
+    access: read
+    description: Lecture des transactions publiées, pour le reporting.
+    firstLevelApprovers: Data Product Owner Ventes
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    description: Une livraison par jour.
+  - property: latency
+    value: 8
+    unit: h
+    element: transactions.date_transaction
+    description: >-
+      Les transactions du jour J sont disponibles le jour J+1 avant 8 h (heure de Paris).
+  - property: retention
+    value: 10
+    unit: y
+    driver: regulatory
+    description: >-
+      Conservation des pièces comptables pendant dix ans (article L123-22 du Code de commerce).
+
+schema:
+  - name: transactions
+    physicalName: ventes_transactions
+    physicalType: table
+    logicalType: object
+    businessName: Transactions de vente et de remboursement
+    description: Une ligne par transaction (une vente ou un remboursement).
+    dataGranularityDescription: Une ligne par transaction.
+
+    properties:
+      - name: transaction_id
+        businessName: Identifiant de transaction
+        logicalType: string
+        physicalType: VARCHAR(20)
+        logicalTypeOptions:
+          pattern: "^TXN-[0-9]{8}$"
+        primaryKey: true
+        primaryKeyPosition: 1
+        required: true
+        unique: true
+        classification: internal
+        examples: ["TXN-00000001"]
+
+      - name: date_transaction
+        businessName: Date et heure de la transaction
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        required: true
+        classification: internal
+
+      - name: client_id
+        businessName: Identifiant client (pseudonymisé)
+        description: >-
+          Identifiant technique sans signification, qui ne permet pas à lui seul
+          d'identifier une personne. Doit exister dans le référentiel du Service client.
+        logicalType: string
+        physicalType: VARCHAR(12)
+        logicalTypeOptions:
+          pattern: "^CLT-[0-9]{6}$"
+        required: true
+        classification: internal
+        relationships:
+          - type: foreignKey
+            to: clients.client_id
+        quality:
+          - id: q-client-manquant
+            name: Client renseigné
+            description: Moins de 1 % de transactions sans client.
+            metric: nullValues
+            mustBeLessThan: 1
+            unit: percent
+            dimension: completeness
+            severity: error
+
+      - name: type_transaction
+        businessName: Type de transaction
+        logicalType: string
+        physicalType: VARCHAR(15)
+        required: true
+        classification: internal
+        quality:
+          - id: q-type-valide
+            name: Type de transaction connu
+            metric: invalidValues
+            arguments:
+              validValues: [vente, remboursement]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+      - name: categorie
+        businessName: Catégorie de produit
+        logicalType: string
+        physicalType: VARCHAR(30)
+        required: true
+        classification: internal
+        quality:
+          - id: q-categorie-valide
+            name: Catégorie connue
+            metric: invalidValues
+            arguments:
+              validValues: [Électronique, Mode, Maison, Sport, Alimentation]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+      - name: montant
+        businessName: Montant de la transaction
+        description: >-
+          Montant toutes taxes comprises, dans la devise de la transaction.
+          Positif pour une vente, négatif pour un remboursement.
+        logicalType: number
+        physicalType: NUMERIC(12,2)
+        required: true
+        classification: internal
+        criticalDataElement: true
+        quality:
+          - id: q-montant-manquant
+            name: Montant renseigné
+            metric: nullValues
+            mustBeLessThan: 1
+            unit: percent
+            dimension: completeness
+            severity: error
+          - id: q-vente-positive
+            name: Une vente a un montant strictement positif
+            type: sql
+            query: >-
+              SELECT COUNT(*) FROM {object}
+              WHERE type_transaction = 'vente' AND montant <= 0
+            mustBe: 0
+            dimension: accuracy
+            severity: error
+            businessImpact: Chiffre d'affaires sous-évalué.
+          - id: q-remboursement-negatif
+            name: Un remboursement a un montant strictement négatif
+            description: >-
+              Un montant négatif est NORMAL pour un remboursement ; il n'est
+              anormal que sur une vente.
+            type: sql
+            query: >-
+              SELECT COUNT(*) FROM {object}
+              WHERE type_transaction = 'remboursement' AND montant >= 0
+            mustBe: 0
+            dimension: accuracy
+            severity: error
+          - id: q-montant-plausible
+            name: Montant cohérent avec l'historique
+            description: >-
+              Aucun seuil fixe ne suffit : un montant peut être correct dans
+              l'absolu mais anormal pour ce client ou cette catégorie (par exemple
+              un client qui achète soudain dix fois plus que d'habitude). Ce
+              contrôle est confié au mécanisme 1, la détection d'anomalies.
+            type: custom
+            engine: datamesh-ai-governance
+            implementation: mecanisme_1_detection_anomalies
+            dimension: accuracy
+            severity: warning
+
+      - name: quantite
+        businessName: Quantité
+        logicalType: integer
+        physicalType: INTEGER
+        logicalTypeOptions:
+          minimum: 1
+        required: true
+        classification: internal
+
+      - name: pays
+        businessName: Pays de facturation (code ISO 3166)
+        logicalType: string
+        physicalType: CHAR(2)
+        required: true
+        classification: internal
+        quality:
+          - id: q-pays-valide
+            name: Pays couvert
+            metric: invalidValues
+            arguments:
+              validValues: [FR, BE, CH, DE, ES]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+      - name: devise
+        businessName: Devise (code ISO 4217)
+        logicalType: string
+        physicalType: CHAR(3)
+        required: true
+        classification: internal
+        quality:
+          - id: q-devise-coherente
+            name: Devise cohérente avec le pays
+            description: Franc suisse pour la Suisse, euro pour les autres pays.
+            type: sql
+            query: >-
+              SELECT COUNT(*) FROM {object}
+              WHERE (pays = 'CH' AND devise <> 'CHF')
+                 OR (pays <> 'CH' AND devise <> 'EUR')
+            mustBe: 0
+            dimension: consistency
+            severity: error
+
+      - name: segment
+        businessName: Segment de clientèle
+        logicalType: string
+        physicalType: VARCHAR(15)
+        required: true
+        classification: internal
+        quality:
+          - id: q-segment-valide
+            name: Segment connu
+            metric: invalidValues
+            arguments:
+              validValues: [Particulier, Professionnel, Premium]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+      - name: canal
+        businessName: Canal de vente
+        logicalType: string
+        physicalType: VARCHAR(10)
+        required: true
+        classification: internal
+        quality:
+          - id: q-canal-valide
+            name: Canal connu
+            metric: invalidValues
+            arguments:
+              validValues: [Web, Mobile, Magasin]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+    quality:
+      - id: q-livraison-non-vide
+        name: Livraison non vide
+        metric: rowCount
+        mustBeGreaterThan: 0
+        dimension: completeness
+        severity: error
+      - id: q-doublon-exact
+        name: Aucune transaction saisie deux fois
+        description: >-
+          Même client, même date et heure, même catégorie, même montant :
+          probablement une double saisie. Avertissement seulement, car un
+          achat identique répété reste possible ; un humain tranche.
+        metric: duplicateValues
+        arguments:
+          properties: [client_id, date_transaction, categorie, montant]
+        mustBe: 0
+        dimension: uniqueness
+        severity: warning
+      - id: q-client-connu
+        name: Client connu du Service client
+        description: >-
+          Cohérence entre domaines : chaque client d'une transaction doit
+          exister dans le référentiel du domaine Service client.
+        type: sql
+        query: >-
+          SELECT COUNT(*) FROM {object} t
+          LEFT JOIN service_client_clients c ON t.client_id = c.client_id
+          WHERE t.client_id IS NOT NULL AND c.client_id IS NULL
+        mustBe: 0
+        dimension: consistency
+        severity: error

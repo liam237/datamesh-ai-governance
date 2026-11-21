@@ -1,0 +1,262 @@
+# Contrat de données n° 2 : domaine Service client (producteur) -> domaine Finance (consommateur)
+# Format : Open Data Contract Standard (ODCS) v3.1.0, projet Bitol / Linux Foundation.
+#
+# Choix de minimisation (RGPD, article 5.1.c) : la Finance n'a pas besoin du nom,
+# de l'e-mail ni du téléphone des clients pour son reporting. Ces données restent
+# dans le domaine Service client. Le référentiel publié ne contient qu'un
+# identifiant pseudonymisé et des attributs utiles à l'analyse.
+
+apiVersion: v3.1.0
+kind: DataContract
+id: c2-service-client-referentiel-tickets
+name: Référentiel clients et tickets du Service client
+version: 1.0.0
+status: active
+domain: service_client
+
+description:
+  purpose: >-
+    Fournir à la Finance un référentiel clients unique et fiable (un client =
+    une ligne) et l'historique des tickets, notamment pour analyser les motifs
+    de remboursement et les gestes commerciaux.
+  usage: >-
+    Jointure avec les transactions des Ventes ; analyse des remboursements par
+    motif, par segment et par ville.
+  limitations: >-
+    Données simulées dans le cadre d'une preuve de concept. Les commentaires
+    libres sont publiés après masquage des données personnelles détectées ;
+    une détection automatique n'étant jamais parfaite, une revue humaine par
+    échantillon reste nécessaire.
+
+team:
+  name: Domaine Service client
+  members:
+    - username: dpo.service-client
+      name: Data Product Owner Service client
+      role: owner
+      description: Propriétaire du contrat. Alerté en cas de violation, il décide.
+    - username: steward.service-client
+      name: Data Steward Service client
+      role: data steward
+      description: Valide les fusions de doublons et les masquages proposés.
+    - username: dpd
+      name: Délégué à la protection des données
+      role: consulted
+      description: Consulté sur toute question de données personnelles.
+
+roles:
+  - role: finance_analyste
+    access: read
+    description: Lecture du référentiel pseudonymisé et des tickets masqués.
+    firstLevelApprovers: Data Product Owner Service client
+    secondLevelApprovers: Délégué à la protection des données
+
+slaProperties:
+  - property: frequency
+    value: 1
+    unit: d
+    description: Une livraison par jour.
+  - property: latency
+    value: 8
+    unit: h
+    description: >-
+      Les données du jour J sont disponibles le jour J+1 avant 8 h (heure de Paris).
+
+schema:
+  # --- Objet 1 : le référentiel clients -------------------------------------
+  - name: clients
+    physicalName: service_client_clients
+    physicalType: table
+    logicalType: object
+    businessName: Référentiel clients
+    description: >-
+      Une ligne par client réel. Les doublons (un même client saisi deux fois,
+      par exemple « Julie Martin » et « J. Martin ») sont fusionnés avant
+      publication, sans fusionner les homonymes (deux personnes différentes
+      portant le même nom).
+    dataGranularityDescription: Une ligne par client.
+
+    properties:
+      - name: client_id
+        businessName: Identifiant client (pseudonymisé)
+        logicalType: string
+        physicalType: VARCHAR(12)
+        logicalTypeOptions:
+          pattern: "^CLT-[0-9]{6}$"
+        primaryKey: true
+        primaryKeyPosition: 1
+        required: true
+        unique: true
+        classification: internal
+
+      - name: segment
+        businessName: Segment de clientèle
+        logicalType: string
+        physicalType: VARCHAR(15)
+        required: true
+        classification: internal
+        quality:
+          - id: q-segment-valide
+            name: Segment connu
+            metric: invalidValues
+            arguments:
+              validValues: [Particulier, Professionnel, Premium]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+      - name: ville
+        businessName: Ville de résidence
+        logicalType: string
+        physicalType: VARCHAR(50)
+        required: false
+        classification: restricted
+
+      - name: date_creation
+        businessName: Date de création du compte client
+        logicalType: date
+        physicalType: DATE
+        required: true
+        classification: internal
+
+    quality:
+      - id: q-referentiel-non-vide
+        name: Référentiel non vide
+        metric: rowCount
+        mustBeGreaterThan: 0
+        dimension: completeness
+        severity: error
+      - id: q-client-unique
+        name: Un client réel = une seule ligne
+        description: >-
+          Aucun client réel ne doit apparaître sous deux identifiants. Une
+          simple comparaison des noms ne suffit pas (fautes de frappe,
+          initiales, homonymes) : ce contrôle est confié au mécanisme 9, la
+          résolution d'entités, avant publication et sous validation humaine.
+        type: custom
+        engine: datamesh-ai-governance
+        implementation: mecanisme_9_resolution_entites
+        dimension: uniqueness
+        severity: error
+
+  # --- Objet 2 : les tickets -----------------------------------------------
+  - name: tickets
+    physicalName: service_client_tickets
+    physicalType: table
+    logicalType: object
+    businessName: Tickets du Service client
+    description: Une ligne par ticket ouvert par un client.
+    dataGranularityDescription: Une ligne par ticket.
+
+    properties:
+      - name: ticket_id
+        businessName: Identifiant de ticket
+        logicalType: string
+        physicalType: VARCHAR(20)
+        logicalTypeOptions:
+          pattern: "^TCK-[0-9]{8}$"
+        primaryKey: true
+        primaryKeyPosition: 1
+        required: true
+        unique: true
+        classification: internal
+
+      - name: client_id
+        businessName: Identifiant client (pseudonymisé)
+        logicalType: string
+        physicalType: VARCHAR(12)
+        required: true
+        classification: internal
+        relationships:
+          - type: foreignKey
+            to: clients.client_id
+
+      - name: transaction_id
+        businessName: Transaction concernée, s'il y en a une
+        description: Renseigné pour une réclamation ou un remboursement.
+        logicalType: string
+        physicalType: VARCHAR(20)
+        required: false
+        classification: internal
+
+      - name: date_ticket
+        businessName: Date et heure d'ouverture du ticket
+        logicalType: timestamp
+        physicalType: TIMESTAMP
+        required: true
+        classification: internal
+
+      - name: motif
+        businessName: Motif du ticket
+        logicalType: string
+        physicalType: VARCHAR(30)
+        required: true
+        classification: internal
+        quality:
+          - id: q-motif-valide
+            name: Motif connu
+            metric: invalidValues
+            arguments:
+              validValues: [livraison, retour, remboursement, produit_defectueux, information, autre]
+            mustBe: 0
+            dimension: conformity
+            severity: error
+
+      - name: commentaire
+        businessName: Commentaire libre de l'agent
+        description: >-
+          Texte saisi librement par l'agent. Il ne doit contenir AUCUNE donnée
+          personnelle en clair : e-mail, téléphone, IBAN, numéro de sécurité
+          sociale, nom de personne, adresse.
+        logicalType: string
+        physicalType: TEXT
+        required: false
+        classification: restricted
+        quality:
+          - id: q-commentaire-sans-pii-formatee
+            name: Aucune donnée personnelle à format reconnaissable
+            description: >-
+              Première ligne de défense : des motifs de texte (expressions
+              régulières) pour l'e-mail, le téléphone, l'IBAN et le numéro de
+              sécurité sociale.
+            type: custom
+            engine: datamesh-ai-governance
+            implementation: mecanisme_4_donnees_personnelles_regles
+            dimension: conformity
+            severity: error
+            businessImpact: regulatory
+          - id: q-commentaire-sans-pii-libre
+            name: Aucune donnée personnelle sans format
+            description: >-
+              Deuxième ligne de défense : un modèle de langue (spaCy) repère les
+              noms de personnes et les lieux sans format reconnaissable, par
+              exemple « rappeler Mme Dupont chez elle ».
+            type: custom
+            engine: datamesh-ai-governance
+            implementation: mecanisme_4_donnees_personnelles_nlp
+            dimension: conformity
+            severity: error
+            businessImpact: regulatory
+
+    quality:
+      - id: q-ticket-client-connu
+        name: Chaque ticket concerne un client connu
+        type: sql
+        query: >-
+          SELECT COUNT(*) FROM {object} t
+          LEFT JOIN service_client_clients c ON t.client_id = c.client_id
+          WHERE c.client_id IS NULL
+        mustBe: 0
+        dimension: consistency
+        severity: error
+      - id: q-ticket-transaction-connue
+        name: La transaction citée existe chez les Ventes
+        description: Cohérence entre domaines Service client et Ventes.
+        type: sql
+        query: >-
+          SELECT COUNT(*) FROM {object} t
+          LEFT JOIN ventes_transactions v ON t.transaction_id = v.transaction_id
+          WHERE t.transaction_id IS NOT NULL AND v.transaction_id IS NULL
+        mustBe: 0
+        dimension: consistency
+        severity: warning
