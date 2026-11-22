@@ -1,0 +1,304 @@
+{
+  "annee": {
+    "systeme": {
+      "alertes": 1048,
+      "VP": 782,
+      "FP": 266,
+      "FN": 203,
+      "VN": 35852,
+      "precision": 0.7462,
+      "rappel": 0.7939,
+      "F1": 0.7693,
+      "F2": 0.7839,
+      "cout": {
+        "1": 1251,
+        "10": 3078,
+        "100": 21348
+      }
+    },
+    "expert": {
+      "alertes": 696,
+      "VP": 695,
+      "FP": 1,
+      "FN": 290,
+      "VN": 36117,
+      "precision": 0.9986,
+      "rappel": 0.7056,
+      "F1": 0.8269,
+      "F2": 0.7496,
+      "cout": {
+        "1": 986,
+        "10": 3596,
+        "100": 29696
+      }
+    },
+    "seuil_de_rentabilite": 4.05,
+    "rappel_par_famille_systeme": {
+      "devise_incoherente": 1.0,
+      "doublon_approche": 0.9714,
+      "doublon_exact": 1.0,
+      "magasin_hors_horaires": 1.0,
+      "montant_nul_ou_negatif": 1.0,
+      "pic_client": 0.0288,
+      "prix_unitaire_aberrant": 1.0,
+      "rafale_achats": 0.2206,
+      "rejeu_lot": 0.0208,
+      "valeur_hors_referentiel": 1.0,
+      "valeur_manquante": 1.0
+    },
+    "rappel_par_famille_expert": {
+      "devise_incoherente": 1.0,
+      "doublon_approche": 0.0,
+      "doublon_exact": 1.0,
+      "magasin_hors_horaires": 1.0,
+      "montant_nul_ou_negatif": 1.0,
+      "pic_client": 0.0,
+      "prix_unitaire_aberrant": 1.0,
+      "rafale_achats": 0.0,
+      "rejeu_lot": 0.0,
+      "valeur_hors_referentiel": 1.0,
+      "valeur_manquante": 1.0
+    }
+  },
+  "dernier_trimestre": {
+    "systeme": {
+      "alertes": 293,
+      "VP": 227,
+      "FP": 66,
+      "FN": 82,
+      "VN": 10119,
+      "precision": 0.7747,
+      "rappel": 0.7346,
+      "F1": 0.7542,
+      "F2": 0.7423,
+      "cout": {
+        "1": 375,
+        "10": 1113,
+        "100": 8493
+      }
+    },
+    "expert": {
+      "alertes": 195,
+      "VP": 194,
+      "FP": 1,
+      "FN": 115,
+      "VN": 10184,
+      "precision": 0.9949,
+      "rappel": 0.6278,
+      "F1": 0.7698,
+      "F2": 0.6778,
+      "cout": {
+        "1": 310,
+        "10": 1345,
+        "100": 11695
+      }
+    },
+    "seuil_de_rentabilite": 2.97,
+    "rappel_par_famille_systeme": {
+      "devise_incoherente": 1.0,
+      "doublon_approche": 0.9545,
+      "doublon_exact": 1.0,
+      "magasin_hors_horaires": 1.0,
+      "montant_nul_ou_negatif": 1.0,
+      "pic_client": 0.0513,
+      "prix_unitaire_aberrant": 1.0,
+      "rafale_achats": 0.3571,
+      "rejeu_lot": 0.0,
+      "valeur_hors_referentiel": 1.0,
+      "valeur_manquante": 1.0
+    },
+    "rappel_par_famille_expert": {
+      "devise_incoherente": 1.0,
+      "doublon_approche": 0.0,
+      "doublon_exact": 1.0,
+      "magasin_hors_horaires": 1.0,
+      "montant_nul_ou_negatif": 1.0,
+      "pic_client": 0.0,
+      "prix_unitaire_aberrant": 1.0,
+      "rafale_achats": 0.0,
+      "rejeu_lot": 0.0,
+      "valeur_hors_referentiel": 1.0,
+      "valeur_manquante": 1.0
+    }
+  },
+  "alertes_par_couche": {
+    "quarantaine": 696,
+    "supervise": 230,
+    "filet": 122
+  },
+  "vraies_anomalies_par_couche": {
+    "quarantaine": 695,
+    "supervise": 76,
+    "filet": 11
+  },
+  "premier_mois_ou_le_systeme_depasse_l_expert": "2025-01",
+  "mois_par_mois": [
+    {
+      "mois": "2025-01",
+      "systeme_rappel": 0.8837,
+      "systeme_precision": 0.717,
+      "systeme_F1": 0.7917,
+      "expert_rappel": 0.7791,
+      "expert_precision": 1.0,
+      "expert_F1": 0.8758,
+      "systeme_cout": 206,
+      "expert_cout": 257,
+      "lignes_examinees_cumul": 106,
+      "anomalies_confirmees_cumul": 76
+    },
+    {
+      "mois": "2025-02",
+      "systeme_rappel": 0.9259,
+      "systeme_precision": 0.7143,
+      "systeme_F1": 0.8065,
+      "expert_rappel": 0.9259,
+      "expert_precision": 1.0,
+      "expert_F1": 0.9615,
+      "systeme_cout": 110,
+      "expert_cout": 90,
+      "lignes_examinees_cumul": 176,
+      "anomalies_confirmees_cumul": 126
+    },
+    {
+      "mois": "2025-03",
+      "systeme_rappel": 0.7971,
+      "systeme_precision": 0.7432,
+      "systeme_F1": 0.7692,
+      "expert_rappel": 0.6812,
+      "expert_precision": 1.0,
+      "expert_F1": 0.8103,
+      "systeme_cout": 214,
+      "expert_cout": 267,
+      "lignes_examinees_cumul": 250,
+      "anomalies_confirmees_cumul": 181
+    },
+    {
+      "mois": "2025-04",
+      "systeme_rappel": 0.8065,
+      "systeme_precision": 0.6667,
+      "systeme_F1": 0.7299,
+      "expert_rappel": 0.7903,
+      "expert_precision": 1.0,
+      "expert_F1": 0.8829,
+      "systeme_cout": 195,
+      "expert_cout": 179,
+      "lignes_examinees_cumul": 325,
+      "anomalies_confirmees_cumul": 231
+    },
+    {
+      "mois": "2025-05",
+      "systeme_rappel": 0.7714,
+      "systeme_precision": 0.7397,
+      "systeme_F1": 0.7552,
+      "expert_rappel": 0.6857,
+      "expert_precision": 1.0,
+      "expert_F1": 0.8136,
+      "systeme_cout": 233,
+      "expert_cout": 268,
+      "lignes_examinees_cumul": 398,
+      "anomalies_confirmees_cumul": 285
+    },
+    {
+      "mois": "2025-06",
+      "systeme_rappel": 0.7778,
+      "systeme_precision": 0.7326,
+      "systeme_F1": 0.7545,
+      "expert_rappel": 0.716,
+      "expert_precision": 1.0,
+      "expert_F1": 0.8345,
+      "systeme_cout": 266,
+      "expert_cout": 288,
+      "lignes_examinees_cumul": 484,
+      "anomalies_confirmees_cumul": 348
+    },
+    {
+      "mois": "2025-07",
+      "systeme_rappel": 0.9333,
+      "systeme_precision": 0.75,
+      "systeme_F1": 0.8317,
+      "expert_rappel": 0.8333,
+      "expert_precision": 1.0,
+      "expert_F1": 0.9091,
+      "systeme_cout": 172,
+      "expert_cout": 225,
+      "lignes_examinees_cumul": 596,
+      "anomalies_confirmees_cumul": 432
+    },
+    {
+      "mois": "2025-08",
+      "systeme_rappel": 0.7,
+      "systeme_precision": 0.759,
+      "systeme_F1": 0.7283,
+      "expert_rappel": 0.6444,
+      "expert_precision": 1.0,
+      "expert_F1": 0.7838,
+      "systeme_cout": 353,
+      "expert_cout": 378,
+      "lignes_examinees_cumul": 679,
+      "anomalies_confirmees_cumul": 495
+    },
+    {
+      "mois": "2025-09",
+      "systeme_rappel": 0.8108,
+      "systeme_precision": 0.7895,
+      "systeme_F1": 0.8,
+      "expert_rappel": 0.6622,
+      "expert_precision": 1.0,
+      "expert_F1": 0.7967,
+      "systeme_cout": 216,
+      "expert_cout": 299,
+      "lignes_examinees_cumul": 755,
+      "anomalies_confirmees_cumul": 555
+    },
+    {
+      "mois": "2025-10",
+      "systeme_rappel": 0.5638,
+      "systeme_precision": 0.7794,
+      "systeme_F1": 0.6543,
+      "expert_rappel": 0.4894,
+      "expert_precision": 1.0,
+      "expert_F1": 0.6571,
+      "systeme_cout": 478,
+      "expert_cout": 526,
+      "lignes_examinees_cumul": 823,
+      "anomalies_confirmees_cumul": 608
+    },
+    {
+      "mois": "2025-11",
+      "systeme_rappel": 0.8315,
+      "systeme_precision": 0.7629,
+      "systeme_F1": 0.7957,
+      "expert_rappel": 0.7079,
+      "expert_precision": 1.0,
+      "expert_F1": 0.8289,
+      "systeme_cout": 247,
+      "expert_cout": 323,
+      "lignes_examinees_cumul": 920,
+      "anomalies_confirmees_cumul": 682
+    },
+    {
+      "mois": "2025-12",
+      "systeme_rappel": 0.7937,
+      "systeme_precision": 0.7812,
+      "systeme_F1": 0.7874,
+      "expert_rappel": 0.6746,
+      "expert_precision": 0.9884,
+      "expert_F1": 0.8019,
+      "systeme_cout": 388,
+      "expert_cout": 496,
+      "lignes_examinees_cumul": 1048,
+      "anomalies_confirmees_cumul": 782
+    }
+  ],
+  "reglages": {
+    "supervised": "hist_gradient_boosting",
+    "net": "isolation_forest",
+    "budget": 0.01,
+    "net_share": 0.25,
+    "retrain_every": 4,
+    "net_window": 12,
+    "min_positives": 20,
+    "sup_min_score": null,
+    "seed": 0
+  }
+}
