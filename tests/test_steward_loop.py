@@ -50,3 +50,21 @@ def test_partage_du_budget_et_lignes_deja_en_quarantaine_exclues():
     assert len(out["supervise"]) == 15 and len(out["filet"]) == 5
     sent = out["supervise"].union(out["filet"])
     assert not sent.isin(X.index[:5]).any() and not out["supervise"].isin(out["filet"]).any()
+
+
+def test_l_examen_n_est_jamais_lance_automatiquement():
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parents[1]
+    pipeline = (root / "pipeline" / "run_all.py").read_text(encoding="utf-8")
+    assert "import main" in pipeline and "from evaluation.final_exam_mechanism1" not in pipeline
+    forbidden = "final_exam_" + "mechanism1"   # découpé pour que ce test ne se détecte pas lui-même
+    for test in (root / "tests").glob("test_*.py"):
+        assert forbidden not in test.read_text(encoding="utf-8")
+
+
+def test_cout_et_seuil_de_rentabilite():
+    from evaluation.metrics import break_even, cost
+    expert = {"alertes": 100, "FN": 50}
+    boucle = {"alertes": 160, "FN": 35}
+    assert cost(expert, 10) == 600 and cost(boucle, 10) == 510
+    assert break_even(boucle, expert) == 4.0

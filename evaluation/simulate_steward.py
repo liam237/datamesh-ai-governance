@@ -27,7 +27,7 @@ from scipy.stats import wilcoxon
 from baselines.rules import run as run_baseline
 from evaluation.compare_anomaly_models import ALPHA, cross_validate
 from evaluation.data import ROOT, load_published, load_truth
-from evaluation.metrics import recall_by_family, scores
+from evaluation.metrics import MISS_COSTS, break_even, cost, f_beta, recall_by_family, scores
 from mechanisms.arrival import anomaly_detection as AD
 from mechanisms.arrival.features import build_features, sales_scope
 from mechanisms.arrival.steward_loop import Settings, StewardLoop
@@ -94,7 +94,17 @@ def simulate(dataset: str, settings: Settings) -> pd.DataFrame:
 
 
 def _period(r: pd.DataFrame, alert: str) -> dict:
-    return scores(r["est_anomalie"], r[alert])
+    s = scores(r["est_anomalie"], r[alert])
+    s["F2"] = round(f_beta(s["precision"], s["rappel"], 2), 4)
+    s["cout"] = {str(m): cost(s, m) for m in MISS_COSTS}
+    return s
+
+
+def _bilan(d: pd.DataFrame) -> dict:
+    sys_, exp = _period(d, "examinee"), _period(d, "quarantaine_expert")
+    fam = lambda col: recall_by_family(d["famille"], d["est_anomalie"], d[col])
+    return {"systeme": sys_, "expert": exp, "seuil_de_rentabilite": break_even(sys_, exp),
+            "rappel_par_famille_systeme": fam("examinee"), "rappel_par_famille_expert": fam("quarantaine_expert")}
 
 
 def report(r: pd.DataFrame) -> dict:
@@ -110,17 +120,14 @@ def report(r: pd.DataFrame) -> dict:
         monthly.append({"mois": str(m), "systeme_rappel": sysm["rappel"], "systeme_precision": sysm["precision"],
                         "systeme_F1": sysm["F1"], "expert_rappel": expm["rappel"],
                         "expert_precision": expm["precision"], "expert_F1": expm["F1"],
+                        "systeme_cout": sysm["cout"]["10"], "expert_cout": expm["cout"]["10"],
                         "lignes_examinees_cumul": int(len(upto)),
                         "anomalies_confirmees_cumul": int(upto["est_anomalie"].sum())})
-    first_better = next((m["mois"] for m in monthly if m["systeme_F1"] > m["expert_F1"]), None)
-    fam = lambda d, col: recall_by_family(d["famille"], d["est_anomalie"], d[col])
+    # Critère principal (coût) : premier mois où la boucle coûte moins que l'expert seul.
+    first_better = next((m["mois"] for m in monthly if m["systeme_cout"] < m["expert_cout"]), None)
     return {
-        "annee": {"systeme": _period(r, "examinee"), "expert": _period(r, "quarantaine_expert"),
-                  "rappel_par_famille_systeme": fam(r, "examinee"),
-                  "rappel_par_famille_expert": fam(r, "quarantaine_expert")},
-        "dernier_trimestre": {"systeme": _period(last, "examinee"), "expert": _period(last, "quarantaine_expert"),
-                              "rappel_par_famille_systeme": fam(last, "examinee"),
-                              "rappel_par_famille_expert": fam(last, "quarantaine_expert")},
+        "annee": _bilan(r),
+        "dernier_trimestre": _bilan(last),
         "alertes_par_couche": {k: int(v) for k, v in r.loc[r["examinee"], "couche"].value_counts().items()},
         "vraies_anomalies_par_couche": {k: int(v) for k, v in
                                         r.loc[r["examinee"] & r["est_anomalie"], "couche"].value_counts().items()},
@@ -182,13 +189,18 @@ def to_markdown(res: dict) -> str:
              f"{s['min_positives']} anomalies confirmées.", ""]
     for key, title in [("conception", "Jeu de conception (réglage)"), ("developpement", "Jeu de développement (vérification)")]:
         r = res[key]
-        lines += [f"## {title}", "", "| Période | Système | Précision | Rappel | F1 | Lignes examinées |",
-                  "|---|---|---|---|---|---|"]
+        lines += [f"## {title}", "",
+                  "| Période | Système | Précision | Rappel | F1 | F2 | Lignes examinées | Anomalies manquées | "
+                  "Coût (manquée = 10) | Coût (manquée = 100) |", "|---|---|---|---|---|---|---|---|---|---|"]
         for per, lab in [("annee", "Année"), ("dernier_trimestre", "Dernier trimestre")]:
             for who, wl in [("expert", "Expert seul"), ("systeme", "Expert + boucle")]:
                 m = r[per][who]
-                lines.append(f"| {lab} | {wl} | {m['precision']:.3f} | {m['rappel']:.3f} | {m['F1']:.3f} | {m['alertes']} |")
-        lines += ["", f"Premier mois où le système dépasse l'expert : {r['premier_mois_ou_le_systeme_depasse_l_expert']}.",
+                lines.append(f"| {lab} | {wl} | {m['precision']:.3f} | {m['rappel']:.3f} | {m['F1']:.3f} | "
+                             f"{m['F2']:.3f} | {m['alertes']} | {m['FN']} | {m['cout']['10']:.0f} | {m['cout']['100']:.0f} |")
+        lines += ["", "Seuil de rentabilité (une anomalie manquée doit coûter plus que ce nombre de lignes "
+                  f"examinées pour que la boucle vaille le coup) : année {r['annee']['seuil_de_rentabilite']}, "
+                  f"dernier trimestre {r['dernier_trimestre']['seuil_de_rentabilite']}.",
+                  "", f"Premier mois où la boucle coûte moins que l'expert seul : {r['premier_mois_ou_le_systeme_depasse_l_expert']}.",
                   f"Alertes par couche : {r['alertes_par_couche']} ; vraies anomalies par couche : "
                   f"{r['vraies_anomalies_par_couche']}.", "",
                   "| Famille (dernier trimestre) | Expert seul | Expert + boucle |", "|---|---|---|"]

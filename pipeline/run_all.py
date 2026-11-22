@@ -28,6 +28,14 @@ def _compare_anomaly_models() -> None:
     main()
 
 
+def _design_mechanism1() -> None:
+    from evaluation.simulate_steward import main
+
+    main()
+
+
+# L'examen du mécanisme 1 (evaluation/final_exam_mechanism1.py) n'est PAS ici :
+# il ne doit s'exécuter qu'une fois, à la main.
 STEPS = [
     ("Génération des données simulées (conception, développement, examen)", _generate_data),
     ("1. À l'arrivée : anomalies, données personnelles", None),
@@ -37,6 +45,7 @@ STEPS = [
     ("5. Dans la durée : dérives, FinOps", None),
     ("Évaluation des références simples (contrat, expert)", _evaluate_baselines),
     ("Mécanisme 1 : comparaison des méthodes de détection d'anomalies", _compare_anomaly_models),
+    ("Mécanisme 1 : boucle avec le Data Steward, réglage et vérification", _design_mechanism1),
     ("Évaluation des autres mécanismes : métriques et figures", None),
 ]
 

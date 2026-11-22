@@ -10,14 +10,16 @@ Généré par `python -m evaluation.simulate_steward`. Ne pas modifier à la mai
 
 ## Jeu de conception (réglage)
 
-| Période | Système | Précision | Rappel | F1 | Lignes examinées |
-|---|---|---|---|---|---|
-| Année | Expert seul | 1.000 | 0.800 | 0.889 | 687 |
-| Année | Expert + boucle | 0.737 | 0.885 | 0.804 | 1031 |
-| Dernier trimestre | Expert seul | 1.000 | 0.785 | 0.879 | 186 |
-| Dernier trimestre | Expert + boucle | 0.745 | 0.886 | 0.809 | 282 |
+| Période | Système | Précision | Rappel | F1 | F2 | Lignes examinées | Anomalies manquées | Coût (manquée = 10) | Coût (manquée = 100) |
+|---|---|---|---|---|---|---|---|---|---|
+| Année | Expert seul | 1.000 | 0.800 | 0.889 | 0.833 | 687 | 172 | 2407 | 17887 |
+| Année | Expert + boucle | 0.737 | 0.885 | 0.804 | 0.851 | 1031 | 99 | 2021 | 10931 |
+| Dernier trimestre | Expert seul | 1.000 | 0.785 | 0.879 | 0.820 | 186 | 51 | 696 | 5286 |
+| Dernier trimestre | Expert + boucle | 0.745 | 0.886 | 0.809 | 0.854 | 282 | 27 | 552 | 2982 |
 
-Premier mois où le système dépasse l'expert : None.
+Seuil de rentabilité (une anomalie manquée doit coûter plus que ce nombre de lignes examinées pour que la boucle vaille le coup) : année 4.71, dernier trimestre 4.0.
+
+Premier mois où la boucle coûte moins que l'expert seul : 2025-01.
 Alertes par couche : {'quarantaine': 687, 'supervise': 228, 'filet': 116} ; vraies anomalies par couche : {'quarantaine': 687, 'supervise': 60, 'filet': 13}.
 
 | Famille (dernier trimestre) | Expert seul | Expert + boucle |
@@ -34,14 +36,16 @@ Alertes par couche : {'quarantaine': 687, 'supervise': 228, 'filet': 116} ; vrai
 
 ## Jeu de développement (vérification)
 
-| Période | Système | Précision | Rappel | F1 | Lignes examinées |
-|---|---|---|---|---|---|
-| Année | Expert seul | 0.996 | 0.740 | 0.849 | 675 |
-| Année | Expert + boucle | 0.751 | 0.838 | 0.792 | 1013 |
-| Dernier trimestre | Expert seul | 0.988 | 0.743 | 0.848 | 164 |
-| Dernier trimestre | Expert + boucle | 0.723 | 0.862 | 0.787 | 260 |
+| Période | Système | Précision | Rappel | F1 | F2 | Lignes examinées | Anomalies manquées | Coût (manquée = 10) | Coût (manquée = 100) |
+|---|---|---|---|---|---|---|---|---|---|
+| Année | Expert seul | 0.996 | 0.740 | 0.849 | 0.780 | 675 | 236 | 3035 | 24275 |
+| Année | Expert + boucle | 0.751 | 0.838 | 0.792 | 0.819 | 1013 | 147 | 2483 | 15713 |
+| Dernier trimestre | Expert seul | 0.988 | 0.743 | 0.848 | 0.782 | 164 | 56 | 724 | 5764 |
+| Dernier trimestre | Expert + boucle | 0.723 | 0.862 | 0.787 | 0.830 | 260 | 30 | 560 | 3260 |
 
-Premier mois où le système dépasse l'expert : None.
+Seuil de rentabilité (une anomalie manquée doit coûter plus que ce nombre de lignes examinées pour que la boucle vaille le coup) : année 3.8, dernier trimestre 3.69.
+
+Premier mois où la boucle coûte moins que l'expert seul : 2025-01.
 Alertes par couche : {'quarantaine': 675, 'supervise': 225, 'filet': 113} ; vraies anomalies par couche : {'quarantaine': 672, 'supervise': 79, 'filet': 10}.
 
 | Famille (dernier trimestre) | Expert seul | Expert + boucle |
