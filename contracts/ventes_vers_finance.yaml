@@ -2,12 +2,17 @@
 # Format : Open Data Contract Standard (ODCS) v3.1.0, projet Bitol / Linux Foundation.
 # Ce fichier décrit ce que la Finance ATTEND. Il n'affirme pas que les données
 # sont parfaites : ce sont les mécanismes du projet qui vérifient qu'il est respecté.
+#
+# Historique (détail dans contracts/CHANGELOG.md) :
+#   1.0.0 (21/11/2026) : version initiale.
+#   1.1.0 (22/11/2026) : ajout de la règle q-magasin-horaires, après la découverte
+#                        de ventes « en magasin » la nuit lors de l'exploration.
 
 apiVersion: v3.1.0
 kind: DataContract
 id: c1-ventes-transactions
 name: Transactions quotidiennes des Ventes
-version: 1.0.0
+version: 1.1.0
 status: active
 domain: ventes
 
@@ -294,6 +299,24 @@ schema:
         mustBe: 0
         dimension: uniqueness
         severity: warning
+      - id: q-magasin-horaires
+        name: Une vente en magasin a lieu pendant les heures d'ouverture
+        description: >-
+          Ajoutée en version 1.1.0. Les magasins sont ouverts de 9 h à 20 h :
+          une transaction du canal Magasin enregistrée en dehors de ces heures
+          est impossible (erreur de canal ou d'horodatage). Règle découverte
+          par l'exploration des données, puis validée par le propriétaire du
+          contrat.
+        type: sql
+        query: >-
+          SELECT COUNT(*) FROM {object}
+          WHERE canal = 'Magasin'
+            AND (EXTRACT(HOUR FROM date_transaction) < 9
+                 OR EXTRACT(HOUR FROM date_transaction) >= 20)
+        mustBe: 0
+        dimension: consistency
+        severity: error
+        businessImpact: Chiffre d'affaires des magasins faussé.
       - id: q-client-connu
         name: Client connu du Service client
         description: >-

@@ -1,7 +1,8 @@
 """Vérifie que le monde simulé se comporte comme prévu.
 
 Le test le plus important est celui des trois sortes de désordre, face aux règles
-du contrat n° 1 :
+de la version INITIALE (1.0.0) du contrat n° 1, celle qui existait avant
+l'exploration :
 - les données correctes (normales ou inhabituelles) ne violent AUCUNE règle ;
 - chaque erreur classique viole AU MOINS UNE règle ;
 - aucune anomalie subtile ne viole de règle : c'est là que l'IA devra prouver sa valeur.
@@ -33,7 +34,11 @@ def tx_truth(world):
 
 
 def contract_violations(tx: pd.DataFrame, clients: pd.DataFrame) -> pd.Series:
-    """Règles du contrat n° 1 appliquées ligne à ligne (True = au moins une violation)."""
+    """Règles du contrat n° 1 en version 1.0.0, ligne à ligne (True = au moins une violation).
+
+    La version 1.1.0 ajoute la règle des horaires d'ouverture, qui attrape la
+    famille « magasin_hors_horaires » : voir tests/test_contracts.py.
+    """
     expected_currency = tx["pays"].map({p: v[1] for p, v in C.COUNTRIES.items()})
     checks = [
         tx["montant"].isna(), tx["client_id"].isna(),

@@ -2,10 +2,12 @@
 
 Les **contrats de données** entre domaines. Un contrat décrit ce que le consommateur (la Finance) **attend** d'un producteur. Il n'affirme pas que les données sont parfaites : ce sont les mécanismes du projet qui vérifient qu'il est respecté. En cas de violation, ils mettent les lignes suspectes en quarantaine et alertent le propriétaire.
 
-| Fichier | Producteur | Consommateur | Contenu |
-|---|---|---|---|
-| `ventes_vers_finance.yaml` | Ventes | Finance | Transactions (ventes et remboursements) |
-| `service_client_vers_finance.yaml` | Service client | Finance | Référentiel clients et tickets |
+| Fichier | Version | Producteur | Consommateur | Contenu |
+|---|---|---|---|---|
+| `ventes_vers_finance.yaml` | 1.1.0 | Ventes | Finance | Transactions (ventes et remboursements) |
+| `service_client_vers_finance.yaml` | 1.0.0 | Service client | Finance | Référentiel clients et tickets |
+
+Les contrats évoluent : chaque modification est datée et expliquée dans `CHANGELOG.md`, et les anciennes versions sont conservées dans `history/`. Par exemple, la version 1.1.0 du contrat n° 1 ajoute une règle sur les horaires d'ouverture des magasins, découverte pendant l'exploration des données.
 
 ## Le format : ODCS v3.1.0
 
@@ -14,7 +16,9 @@ Les contrats suivent l'**Open Data Contract Standard (ODCS)**, en version 3.1.0.
 - **Ne pas inventer un format maison.** Un standard reconnu se lit, se vérifie et se réutilise par d'autres outils.
 - **La compatibilité avec le catalogue du projet.** OpenMetadata importe nativement l'ODCS v3.1.0, et transforme les règles de qualité en tests.
 
-Le schéma officiel du standard est copié dans `schema/odcs-json-schema-v3.1.0.json` (licence Apache 2.0, projet Bitol). Les tests (`tests/test_contracts.py`) vérifient à chaque modification que les deux contrats le respectent.
+Le schéma officiel du standard est copié dans `schema/odcs-json-schema-v3.1.0.json` (licence Apache 2.0, projet Bitol). Les tests (`tests/test_contracts.py`) vérifient à chaque modification :
+- que les contrats, versions archivées comprises, respectent ce schéma ;
+- que leurs requêtes SQL s'exécutent réellement sur les données générées, avec DuckDB, et ne déclenchent aucune fausse alerte sur les données correctes.
 
 ## Comment lire un contrat
 
