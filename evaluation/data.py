@@ -10,7 +10,9 @@ import pandas as pd
 from data_generation import config as C
 
 ROOT = Path(__file__).resolve().parents[1]
-DATASETS = {"conception": C.PATHS.root, "test": C.PATHS.test_root}
+DATASETS = {"conception": C.PATHS.root, "test": C.PATHS.test_root, "examen": C.PATHS.exam_root}
+SEEDS = {"conception": C.SEED, "test": C.TEST_SEED, "examen": C.EXAM_SEED}
+SUMMARIES = {"conception": "", "test": "_test", "examen": "_exam"}
 
 
 def ensure(dataset: str) -> Path:
@@ -18,10 +20,9 @@ def ensure(dataset: str) -> Path:
     root = ROOT / DATASETS[dataset]
     if not (root / "ventes" / "transactions.csv").exists():
         from data_generation.generate import build, write
-        test = dataset == "test"
-        write(build(test=test), root=str(root),
-              summary_path=str(ROOT / "results/metrics" / f"generation_summary{'_test' if test else ''}.json"),
-              seed=C.TEST_SEED if test else C.SEED)
+        write(build(test=dataset == "test", exam=dataset == "examen"), root=str(root),
+              summary_path=str(ROOT / "results/metrics" / f"generation_summary{SUMMARIES[dataset]}.json"),
+              seed=SEEDS[dataset])
     return root
 
 

@@ -9,7 +9,8 @@ from dataclasses import dataclass, field
 from datetime import date
 
 SEED = 42            # jeu de CONCEPTION : exploration, choix des variables, réglages
-TEST_SEED = 2026     # jeu de TEST : un monde indépendant, regardé seulement à l'évaluation finale
+TEST_SEED = 2026     # jeu de DÉVELOPPEMENT (ex-« test ») : déjà vu à l'étape 5a
+EXAM_SEED = 2027     # jeu d'EXAMEN : sous scellé, une seule exécution à la fin (étape 5b)
 
 # --- Taille du monde -------------------------------------------------------
 N_CLIENTS = 3_000
@@ -126,6 +127,7 @@ TRAP_RATE = 0.10                   # textes qui ressemblent à de la PII sans en
 class Paths:
     root: str = "data"
     test_root: str = "data_test"
+    exam_root: str = "data_exam"
     ventes: str = "data/ventes"
     service_client: str = "data/service_client"
     ground_truth: str = "data/ground_truth"

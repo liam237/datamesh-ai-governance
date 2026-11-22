@@ -1,0 +1,41 @@
+{
+  "graine": 2027,
+  "periode": "2025-01-01 au 2025-12-31",
+  "transactions": 37103,
+  "dont_remboursements": 1948,
+  "clients_fiches": 3060,
+  "clients_doublons_injectes": 60,
+  "paires_homonymes": 40,
+  "tickets": 4157,
+  "tickets_avec_pii": 475,
+  "tickets_avec_piege": 403,
+  "statut_transactions": {
+    "normal": 29979,
+    "inhabituel_legitime": 6139,
+    "erreur_classique": 521,
+    "anomalie_subtile": 348,
+    "anomalie_inconnue": 116
+  },
+  "familles_anomalies": {
+    "doublon_exact": 139,
+    "valeur_manquante": 104,
+    "pic_client": 104,
+    "prix_unitaire_aberrant": 104,
+    "devise_incoherente": 104,
+    "montant_nul_ou_negatif": 104,
+    "magasin_hors_horaires": 70,
+    "valeur_hors_referentiel": 70,
+    "doublon_approche": 70,
+    "rafale_achats": 68,
+    "rejeu_lot": 48
+  },
+  "taux_anomalies_pct": 2.65,
+  "lignes_touchees_par_la_derive": 199,
+  "transactions_par_periode": {
+    "normale": 24193,
+    "soldes_ete": 3859,
+    "soldes_hiver": 3855,
+    "noel": 3589,
+    "black_friday": 1607
+  }
+}

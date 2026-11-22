@@ -190,3 +190,15 @@ def test_rafales_conformes_a_toutes_les_regles(test_world):
                 span = (one["date_transaction"].max() - one["date_transaction"].min()).total_seconds() / 60
                 assert span <= C.UNKNOWN_BURST_WINDOW_MIN
                 assert one["categorie"].nunique() == C.UNKNOWN_BURST_SIZE
+
+
+def test_jeu_d_examen_independant_avec_une_nouvelle_famille_inconnue():
+    from data_generation.generate import build
+    a = build(exam=True)
+    truth = a["ground_truth/transactions"]
+    fams = set(truth.loc[truth["est_anomalie"], "famille"])
+    assert {"rafale_achats", "rejeu_lot"} <= fams
+    replay = truth[truth["famille"] == "rejeu_lot"]
+    assert (replay["statut"] == "anomalie_inconnue").all() and len(replay) > 0
+    b = build(exam=True)
+    pd.testing.assert_frame_equal(a["ventes/transactions"], b["ventes/transactions"])

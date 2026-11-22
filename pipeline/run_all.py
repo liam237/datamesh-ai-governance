@@ -10,8 +10,10 @@ def _generate_data() -> None:
     from data_generation.generate import build, write
 
     write(build())                                          # jeu de conception
-    write(build(test=True), root=C.PATHS.test_root,         # jeu de test, indépendant
+    write(build(test=True), root=C.PATHS.test_root,         # jeu de développement (ex-test)
           summary_path="results/metrics/generation_summary_test.json", seed=C.TEST_SEED)
+    write(build(exam=True), root=C.PATHS.exam_root,         # jeu d'examen, sous scellé
+          summary_path="results/metrics/generation_summary_exam.json", seed=C.EXAM_SEED)
 
 
 def _evaluate_baselines() -> None:
@@ -27,7 +29,7 @@ def _compare_anomaly_models() -> None:
 
 
 STEPS = [
-    ("Génération des données simulées (conception et test)", _generate_data),
+    ("Génération des données simulées (conception, développement, examen)", _generate_data),
     ("1. À l'arrivée : anomalies, données personnelles", None),
     ("2. Au nettoyage : auto-correction, résolution d'entités", None),
     ("3. À la publication : documentation, lignage", None),

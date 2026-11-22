@@ -31,13 +31,21 @@ CLIENT_COLUMNS = ["client_id", "prenom", "nom", "email", "telephone", "ville", "
 HABIT_COLUMNS = ["client_id", "canal_prefere", "activite_annuelle", "multiplicateur_panier"]
 
 
-def build(seed: int = C.SEED, test: bool = False) -> dict[str, pd.DataFrame]:
+def build(seed: int = C.SEED, test: bool = False, exam: bool = False) -> dict[str, pd.DataFrame]:
     """Construit le monde simulé en mémoire et renvoie toutes les tables.
 
     test=False : jeu de CONCEPTION (graine 42), celui qu'on explore.
     test=True  : jeu de TEST (graine 2026 par défaut), indépendant, qui contient
-                 en plus la famille « inconnue » ; il ne sert qu'à l'évaluation finale.
+                 en plus la famille « inconnue » rafale_achats. Déjà vu à l'étape 5a :
+                 c'est désormais le jeu de DÉVELOPPEMENT.
+    exam=True  : jeu d'EXAMEN (graine 2027), sous scellé. Il contient la rafale
+                 (désormais connue) et une nouvelle famille inconnue, écrite après
+                 le gel des variables (data_generation/exam_unknown.py).
     """
+    if exam:
+        test = True
+        if seed == C.SEED:
+            seed = C.EXAM_SEED
     if test and seed == C.SEED:
         seed = C.TEST_SEED
     rng = np.random.default_rng(seed)
@@ -49,6 +57,9 @@ def build(seed: int = C.SEED, test: bool = False) -> dict[str, pd.DataFrame]:
     tx, labels = inject(tx, rng)
     if test:
         tx, labels = inject_unknown(tx, labels, rng)
+    if exam:
+        from .exam_unknown import inject_replay
+        tx, labels = inject_replay(tx, labels, rng)
 
     # Identifiants définitifs, dans l'ordre chronologique.
     tx = tx.sort_values(["date_transaction", "_row"], kind="stable").reset_index(drop=True)
@@ -129,7 +140,10 @@ def main() -> int:
     """`python -m data_generation.generate` : jeu de conception ; ajouter `--test` pour le jeu de test."""
     import sys
 
-    if "--test" in sys.argv:
+    if "--exam" in sys.argv:
+        info = write(build(exam=True), root=C.PATHS.exam_root,
+                     summary_path="results/metrics/generation_summary_exam.json", seed=C.EXAM_SEED)
+    elif "--test" in sys.argv:
         info = write(build(test=True), root=C.PATHS.test_root,
                      summary_path="results/metrics/generation_summary_test.json", seed=C.TEST_SEED)
     else:
