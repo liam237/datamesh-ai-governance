@@ -8,3 +8,17 @@ Bibliographie tenue au fil du projet. Chaque source est rattachée à l'étape o
 - OpenMetadata. *ODCS import and export* (versions et champs pris en charge par le catalogue) : https://docs.open-metadata.org/v2.0.x/how-to-guides/data-contracts/odcs.md
 - Règlement (UE) 2016/679 du 27 avril 2016 (RGPD), article 5.1.c : principe de minimisation des données.
 - Code de commerce, article L123-22 : conservation des documents comptables et pièces justificatives pendant dix ans.
+
+## Étape 5 : mécanisme 1, détection d'anomalies
+
+- Han, S., Hu, X., Huang, H., Jiang, M., Zhao, Y. *ADBench: Anomaly Detection Benchmark*. NeurIPS 2022, Datasets and Benchmarks. https://arxiv.org/abs/2206.09426 (aucune méthode non supervisée n'est meilleure en général ; 1 % d'étiquettes suffit aux méthodes semi-supervisées pour dépasser la meilleure non supervisée).
+- Grinsztajn, L., Oyallon, E., Varoquaux, G. *Why do tree-based models still outperform deep learning on typical tabular data?* NeurIPS 2022. https://arxiv.org/abs/2207.08815
+- Iglewicz, B., Hoaglin, D. *How to Detect and Handle Outliers*. ASQC Quality Press, 1993 (score z modifié, médiane et MAD).
+- Rousseeuw, P. J., Van Driessen, K. *A fast algorithm for the minimum covariance determinant estimator*. Technometrics, 41(3), 1999.
+- Liu, F. T., Ting, K. M., Zhou, Z.-H. *Isolation Forest*. IEEE ICDM 2008.
+- Breunig, M. M., Kriegel, H.-P., Ng, R. T., Sander, J. *LOF: Identifying Density-Based Local Outliers*. ACM SIGMOD 2000.
+- Schölkopf, B., Platt, J. C., Shawe-Taylor, J., Smola, A. J., Williamson, R. C. *Estimating the Support of a High-Dimensional Distribution*. Neural Computation, 13(7), 2001.
+- Friedman, J. H. *Greedy Function Approximation: A Gradient Boosting Machine*. Annals of Statistics, 29(5), 2001.
+- Chen, T., Guestrin, C. *XGBoost: A Scalable Tree Boosting System*. KDD 2016. https://arxiv.org/abs/1603.02754
+- Saito, T., Rehmsmeier, M. *The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets*. PLOS ONE, 10(3), 2015.
+- Wilcoxon, F. *Individual Comparisons by Ranking Methods*. Biometrics Bulletin, 1(6), 1945.

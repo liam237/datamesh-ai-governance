@@ -20,6 +20,12 @@ def _evaluate_baselines() -> None:
     main()
 
 
+def _compare_anomaly_models() -> None:
+    from evaluation.compare_anomaly_models import main
+
+    main()
+
+
 STEPS = [
     ("Génération des données simulées (conception et test)", _generate_data),
     ("1. À l'arrivée : anomalies, données personnelles", None),
@@ -28,7 +34,8 @@ STEPS = [
     ("4. À la consommation : contrôle d'accès, analyse comportementale", None),
     ("5. Dans la durée : dérives, FinOps", None),
     ("Évaluation des références simples (contrat, expert)", _evaluate_baselines),
-    ("Évaluation des mécanismes : métriques et figures", None),
+    ("Mécanisme 1 : comparaison des méthodes de détection d'anomalies", _compare_anomaly_models),
+    ("Évaluation des autres mécanismes : métriques et figures", None),
 ]
 
 
