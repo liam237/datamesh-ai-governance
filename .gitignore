@@ -5,6 +5,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .ipynb_checkpoints/
+notebooks/_test_*.ipynb
 
 # Secrets : seul .env.example est versionné
 .env

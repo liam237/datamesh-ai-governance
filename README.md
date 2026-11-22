@@ -81,6 +81,7 @@ cp .env.example .env             # puis adapter si besoin
 
 make test                        # lance les tests
 make all                         # régénère tous les résultats
+make notebooks                   # réexécute les notebooks et leurs figures
 ```
 
 Sans `make` (par exemple sous Windows) : `python -m pytest` et `python -m pipeline.run_all`.
@@ -92,7 +93,7 @@ Sans `make` (par exemple sous Windows) : `python -m pytest` et `python -m pipeli
 | 0. Cadrage | Terminé |
 | 1. Initialisation du dépôt | Terminé |
 | 2. Générateur de données | Terminé |
-| 3. Exploration des données | À faire |
+| 3. Exploration des données | Terminé |
 | 4. Références simples | À faire |
 | 5. Mécanismes niveau 1 | À faire |
 | 6. Mécanismes niveau 2 | À faire |
