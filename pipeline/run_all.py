@@ -14,6 +14,12 @@ def _generate_data() -> None:
           summary_path="results/metrics/generation_summary_test.json", seed=C.TEST_SEED)
 
 
+def _evaluate_baselines() -> None:
+    from evaluation.evaluate_baselines import main
+
+    main()
+
+
 STEPS = [
     ("Génération des données simulées (conception et test)", _generate_data),
     ("1. À l'arrivée : anomalies, données personnelles", None),
@@ -21,7 +27,8 @@ STEPS = [
     ("3. À la publication : documentation, lignage", None),
     ("4. À la consommation : contrôle d'accès, analyse comportementale", None),
     ("5. Dans la durée : dérives, FinOps", None),
-    ("Évaluation : métriques et figures", None),
+    ("Évaluation des références simples (contrat, expert)", _evaluate_baselines),
+    ("Évaluation des mécanismes : métriques et figures", None),
 ]
 
 

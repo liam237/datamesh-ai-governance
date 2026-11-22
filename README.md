@@ -94,7 +94,7 @@ Sans `make` (par exemple sous Windows) : `python -m pytest` et `python -m pipeli
 | 1. Initialisation du dépôt | Terminé |
 | 2. Générateur de données | Terminé |
 | 3. Exploration des données et variables | Terminé |
-| 4. Références simples | À faire |
+| 4. Références simples | Terminé |
 | 5. Mécanismes niveau 1 | À faire |
 | 6. Mécanismes niveau 2 | À faire |
 | 7. Mécanismes niveau 3 | À faire |
