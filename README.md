@@ -91,7 +91,7 @@ Sans `make` (par exemple sous Windows) : `python -m pytest` et `python -m pipeli
 |---|---|
 | 0. Cadrage | Terminé |
 | 1. Initialisation du dépôt | Terminé |
-| 2. Générateur de données | En cours (contrats écrits) |
+| 2. Générateur de données | Terminé |
 | 3. Exploration des données | À faire |
 | 4. Références simples | À faire |
 | 5. Mécanismes niveau 1 | À faire |
