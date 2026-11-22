@@ -8,7 +8,8 @@ de simulation, pas des statistiques réelles.
 from dataclasses import dataclass, field
 from datetime import date
 
-SEED = 42
+SEED = 42            # jeu de CONCEPTION : exploration, choix des variables, réglages
+TEST_SEED = 2026     # jeu de TEST : un monde indépendant, regardé seulement à l'évaluation finale
 
 # --- Taille du monde -------------------------------------------------------
 N_CLIENTS = 3_000
@@ -96,6 +97,16 @@ class AnomalyRates:
 
 ANOMALY_RATES = AnomalyRates()
 
+# Famille « inconnue », injectée UNIQUEMENT dans le jeu de test. Elle a été
+# conçue après le choix des variables (notebook 02), et aucune variable n'a été
+# pensée pour elle : elle sert à vérifier si le système généralise au-delà de
+# ce qu'on lui a appris à chercher (parade contre la circularité).
+# Rafale d'achats : 4 achats en moins de 30 minutes, dans 4 catégories
+# différentes, à des montants banals (schéma typique d'une carte volée).
+UNKNOWN_BURST_RATE = 0.002       # part des ventes concernées
+UNKNOWN_BURST_SIZE = 4
+UNKNOWN_BURST_WINDOW_MIN = 30
+
 # Dérive : un bug de prix fait monter de 12 % tous les prix d'une catégorie,
 # en France, pendant trois semaines. Invisible ligne à ligne : c'est le
 # mécanisme 2 (dérives) qui doit la repérer, pas le mécanisme 1.
@@ -114,6 +125,7 @@ TRAP_RATE = 0.10                   # textes qui ressemblent à de la PII sans en
 @dataclass(frozen=True)
 class Paths:
     root: str = "data"
+    test_root: str = "data_test"
     ventes: str = "data/ventes"
     service_client: str = "data/service_client"
     ground_truth: str = "data/ground_truth"

@@ -2,6 +2,17 @@
 
 Le **générateur du monde simulé**. On le lance avec `python -m data_generation.generate` (ou `make all`). Il faut environ 5 secondes, et une même graine (`SEED = 42` dans `config.py`) produit exactement les mêmes fichiers à chaque lancement.
 
+## Deux jeux de données indépendants
+
+| Jeu | Graine | Commande | Dossier | Usage |
+|---|---|---|---|---|
+| **Conception** | 42 | `python -m data_generation.generate` | `data/` | Exploration, choix des variables, réglages |
+| **Test** | 2026 | `python -m data_generation.generate --test` | `data_test/` | Évaluation finale uniquement |
+
+Le jeu de test est un **autre monde**, généré avec une autre graine : d'autres clients, d'autres achats, d'autres anomalies. Personne ne le regarde pendant la conception. C'est la pratique standard en apprentissage automatique : un résultat mesuré sur les données qui ont servi à concevoir le système est toujours trop optimiste.
+
+Le jeu de test contient en plus une **famille d'anomalies « inconnue »**, la **rafale d'achats** : 4 achats en moins de 30 minutes, dans 4 catégories différentes, à des montants banals (un schéma typique d'une carte volée). Elle a été conçue **après** le choix des variables, et aucune variable n'a été pensée pour elle. Elle sert à vérifier si le système généralise au-delà de ce qu'on lui a appris à chercher : c'est la **parade contre la circularité** (voir le notebook `02_variables.ipynb`, section 10).
+
 ## Les modules
 
 | Fichier | Rôle |

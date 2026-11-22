@@ -157,3 +157,36 @@ def test_pii_etiquetee_presente_dans_le_texte(world):
     for tid, values in zip(with_pii["ticket_id"], with_pii["valeurs_pii"]):
         for value in values.split("|"):
             assert value in tickets.at[tid, "commentaire"]
+
+
+# ---------------------------------------------------------------------------
+# Jeu de test indépendant et famille « inconnue » (parade contre la circularité)
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="module")
+def test_world():
+    return build(test=True)
+
+
+def test_le_jeu_de_conception_ne_contient_pas_la_famille_inconnue(tx_truth):
+    assert "anomalie_inconnue" not in set(tx_truth["statut"])
+
+
+def test_le_jeu_de_test_est_un_autre_monde(world, test_world):
+    a, b = world["ventes/transactions"], test_world["ventes/transactions"]
+    assert not a[["client_id", "montant"]].head(100).equals(b[["client_id", "montant"]].head(100))
+
+
+def test_rafales_conformes_a_toutes_les_regles(test_world):
+    tx = test_world["ventes/transactions"].merge(test_world["ground_truth/transactions"], on="transaction_id")
+    bursts = tx[tx["famille"] == "rafale_achats"]
+    assert len(bursts) > 0 and len(bursts) % C.UNKNOWN_BURST_SIZE == 0
+    assert contract_violations(bursts, test_world["service_client/clients_interne"]).sum() == 0
+    assert bursts["date_transaction"].dt.hour.isin(C.STORE_OPENING_HOURS).all() or \
+        not (bursts["canal"] == "Magasin").any()
+    for _, b in bursts.groupby("client_id"):
+        for _, one in b.groupby(b["date_transaction"].dt.date):
+            if len(one) == C.UNKNOWN_BURST_SIZE:
+                span = (one["date_transaction"].max() - one["date_transaction"].min()).total_seconds() / 60
+                assert span <= C.UNKNOWN_BURST_WINDOW_MIN
+                assert one["categorie"].nunique() == C.UNKNOWN_BURST_SIZE

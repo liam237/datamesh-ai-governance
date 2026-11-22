@@ -12,6 +12,7 @@ notebooks/_test_*.ipynb
 
 # Données générées (régénérables par une commande, donc non versionnées)
 data/
+data_test/
 
 # Modèles entraînés (régénérables)
 models/*

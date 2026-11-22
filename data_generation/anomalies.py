@@ -20,7 +20,7 @@ import pandas as pd
 
 from . import config as C
 
-CLASSIQUE, SUBTILE = "erreur_classique", "anomalie_subtile"
+CLASSIQUE, SUBTILE, INCONNUE = "erreur_classique", "anomalie_subtile", "anomalie_inconnue"
 
 
 def _pick(candidates: pd.Index, rate: float, n_sales: int, rng) -> pd.Index:
@@ -150,3 +150,46 @@ def inject(tx: pd.DataFrame, rng: np.random.Generator) -> tuple[pd.DataFrame, pd
               lambda _i, s=src_row: f"quasi-copie de la ligne interne {s}")
 
     return tx, pd.DataFrame(labels)
+
+
+def inject_unknown(tx: pd.DataFrame, labels: pd.DataFrame, rng: np.random.Generator
+                   ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """Famille « inconnue » (jeu de test seulement) : des rafales d'achats.
+
+    Pour quelques clients réguliers, on ajoute 4 ventes en moins de 30 minutes,
+    chacune dans une catégorie différente, au montant typique de la catégorie,
+    sur un canal en ligne et à une heure banale. Chaque vente, prise seule, est
+    parfaitement normale : seule la rafale est suspecte.
+    """
+    tx = tx.copy()
+    sales = tx[(tx["type_transaction"] == "vente") & (tx["montant"] > 0)]
+    medians = sales.groupby("categorie")["montant"].median()
+    counts = sales.groupby("client_id").size()
+    regulars = counts[counts >= 6].index
+    profile = sales[sales["client_id"].isin(regulars) & (sales["segment"] != "Professionnel")] \
+        .groupby("client_id")[["pays", "devise", "segment"]].first()
+    n_bursts = int(round(C.UNKNOWN_BURST_RATE * len(sales) / C.UNKNOWN_BURST_SIZE))
+    chosen = rng.choice(profile.index, size=n_bursts, replace=False)
+    days = pd.date_range(C.START, C.END, freq="D")
+    rows, new_labels = [], []
+    next_row = int(tx["_row"].max()) + 1
+    cats = [c.name for c in C.CATEGORIES]
+    for client in chosen:
+        p = profile.loc[client]
+        start = days[rng.integers(len(days))] + pd.Timedelta(hours=int(rng.integers(10, 22)),
+                                                              minutes=int(rng.integers(60)))
+        offsets = np.sort(rng.uniform(0, C.UNKNOWN_BURST_WINDOW_MIN, C.UNKNOWN_BURST_SIZE))
+        for cat, off in zip(rng.choice(cats, C.UNKNOWN_BURST_SIZE, replace=False), offsets):
+            amount = medians[cat] * rng.lognormal(0, 0.3)
+            rows.append({"date_transaction": (start + pd.Timedelta(minutes=float(off))).floor("s").to_pydatetime(),
+                         "client_id": client, "type_transaction": "vente", "categorie": cat,
+                         "montant": round(float(amount), 2), "quantite": 1, "pays": p["pays"],
+                         "devise": p["devise"], "segment": p["segment"],
+                         "canal": str(rng.choice(["Web", "Mobile"])), "_periode": "normale",
+                         "_derive_prix": False, "_vente_origine": pd.NA, "_row": next_row})
+            new_labels.append({"_row": next_row, "statut": INCONNUE, "famille": "rafale_achats",
+                               "description": f"rafale de {C.UNKNOWN_BURST_SIZE} achats en moins de "
+                                              f"{C.UNKNOWN_BURST_WINDOW_MIN} min ({client})"})
+            next_row += 1
+    tx = pd.concat([tx, pd.DataFrame(rows)], ignore_index=True)
+    return tx, pd.concat([labels, pd.DataFrame(new_labels)], ignore_index=True)

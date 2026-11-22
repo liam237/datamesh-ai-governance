@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 
 from . import config as C
-from .anomalies import CLASSIQUE, SUBTILE, inject
+from .anomalies import CLASSIQUE, INCONNUE, SUBTILE, inject, inject_unknown
 from .customer_service import (add_client_duplicates, generate_tickets, homonym_pairs,
                                reassign_to_duplicates)
 from .sales import generate_sales
@@ -31,8 +31,15 @@ CLIENT_COLUMNS = ["client_id", "prenom", "nom", "email", "telephone", "ville", "
 HABIT_COLUMNS = ["client_id", "canal_prefere", "activite_annuelle", "multiplicateur_panier"]
 
 
-def build(seed: int = C.SEED) -> dict[str, pd.DataFrame]:
-    """Construit le monde simulé en mémoire et renvoie toutes les tables."""
+def build(seed: int = C.SEED, test: bool = False) -> dict[str, pd.DataFrame]:
+    """Construit le monde simulé en mémoire et renvoie toutes les tables.
+
+    test=False : jeu de CONCEPTION (graine 42), celui qu'on explore.
+    test=True  : jeu de TEST (graine 2026 par défaut), indépendant, qui contient
+                 en plus la famille « inconnue » ; il ne sert qu'à l'évaluation finale.
+    """
+    if test and seed == C.SEED:
+        seed = C.TEST_SEED
     rng = np.random.default_rng(seed)
 
     clients = generate_clients(rng)
@@ -40,6 +47,8 @@ def build(seed: int = C.SEED) -> dict[str, pd.DataFrame]:
     clients, duplicates = add_client_duplicates(clients, rng)
     tx = reassign_to_duplicates(tx, duplicates, rng)
     tx, labels = inject(tx, rng)
+    if test:
+        tx, labels = inject_unknown(tx, labels, rng)
 
     # Identifiants définitifs, dans l'ordre chronologique.
     tx = tx.sort_values(["date_transaction", "_row"], kind="stable").reset_index(drop=True)
@@ -63,7 +72,7 @@ def build(seed: int = C.SEED) -> dict[str, pd.DataFrame]:
 def _transaction_truth(tx: pd.DataFrame, labels: pd.DataFrame) -> pd.DataFrame:
     truth = tx[["transaction_id", "_row", "type_transaction", "segment", "quantite",
                 "_periode", "_derive_prix"]].merge(labels, on="_row", how="left")
-    truth["est_anomalie"] = truth["statut"].isin([CLASSIQUE, SUBTILE])
+    truth["est_anomalie"] = truth["statut"].isin([CLASSIQUE, SUBTILE, INCONNUE])
 
     # Le « normal mais inhabituel » : correct, mais le système ne doit pas s'en
     # alarmer. La période (soldes, Black Friday, Noël) est notée à part, car elle
@@ -81,11 +90,11 @@ def _transaction_truth(tx: pd.DataFrame, labels: pd.DataFrame) -> pd.DataFrame:
                   "derive_prix_categorie", "description"]]
 
 
-def summary(tables: dict[str, pd.DataFrame]) -> dict:
+def summary(tables: dict[str, pd.DataFrame], seed: int = C.SEED) -> dict:
     tx, truth = tables["ventes/transactions"], tables["ground_truth/transactions"]
     pii = tables["ground_truth/tickets_pii"]
     return {
-        "graine": C.SEED,
+        "graine": seed,
         "periode": f"{C.START} au {C.END}",
         "transactions": int(len(tx)),
         "dont_remboursements": int((tx["type_transaction"] == "remboursement").sum()),
@@ -104,12 +113,12 @@ def summary(tables: dict[str, pd.DataFrame]) -> dict:
 
 
 def write(tables: dict[str, pd.DataFrame], root: str = C.PATHS.root,
-          summary_path: str = "results/metrics/generation_summary.json") -> dict:
+          summary_path: str = "results/metrics/generation_summary.json", seed: int = C.SEED) -> dict:
     for name, df in tables.items():
         path = Path(root) / f"{name}.csv"
         path.parent.mkdir(parents=True, exist_ok=True)
         df.to_csv(path, index=False, encoding="utf-8")
-    info = summary(tables)
+    info = summary(tables, seed)
     Path(summary_path).parent.mkdir(parents=True, exist_ok=True)
     Path(summary_path).write_text(json.dumps(info, ensure_ascii=False, indent=2) + "\n",
                                   encoding="utf-8")
@@ -117,7 +126,14 @@ def write(tables: dict[str, pd.DataFrame], root: str = C.PATHS.root,
 
 
 def main() -> int:
-    info = write(build())
+    """`python -m data_generation.generate` : jeu de conception ; ajouter `--test` pour le jeu de test."""
+    import sys
+
+    if "--test" in sys.argv:
+        info = write(build(test=True), root=C.PATHS.test_root,
+                     summary_path="results/metrics/generation_summary_test.json", seed=C.TEST_SEED)
+    else:
+        info = write(build())
     print(json.dumps(info, ensure_ascii=False, indent=2))
     return 0
 

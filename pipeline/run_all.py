@@ -6,13 +6,16 @@ Elle enchaîne les étapes du parcours d'une donnée, puis l'évaluation. Chaque
 
 
 def _generate_data() -> None:
+    from data_generation import config as C
     from data_generation.generate import build, write
 
-    write(build())
+    write(build())                                          # jeu de conception
+    write(build(test=True), root=C.PATHS.test_root,         # jeu de test, indépendant
+          summary_path="results/metrics/generation_summary_test.json", seed=C.TEST_SEED)
 
 
 STEPS = [
-    ("Génération des données simulées", _generate_data),
+    ("Génération des données simulées (conception et test)", _generate_data),
     ("1. À l'arrivée : anomalies, données personnelles", None),
     ("2. Au nettoyage : auto-correction, résolution d'entités", None),
     ("3. À la publication : documentation, lignage", None),
