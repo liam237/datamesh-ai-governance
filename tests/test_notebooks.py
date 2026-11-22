@@ -23,6 +23,7 @@ def test_notebook_s_execute_sans_erreur(path, tmp_path):
         copy.unlink(missing_ok=True)
 
 
-def test_le_notebook_d_exploration_ne_lit_pas_la_verite_terrain():
-    text = (ROOT / "notebooks" / "01_exploration.ipynb").read_text(encoding="utf-8")
+@pytest.mark.parametrize("name", ["01_exploration.ipynb", "02_variables.ipynb"])
+def test_les_notebooks_de_conception_ne_lisent_pas_la_verite_terrain(name):
+    text = (ROOT / "notebooks" / name).read_text(encoding="utf-8")
     assert "ground_truth" not in text.replace("`data/ground_truth/`", "")
