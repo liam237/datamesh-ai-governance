@@ -22,3 +22,4 @@ Bibliographie tenue au fil du projet. Chaque source est rattachée à l'étape o
 - Chen, T., Guestrin, C. *XGBoost: A Scalable Tree Boosting System*. KDD 2016. https://arxiv.org/abs/1603.02754
 - Saito, T., Rehmsmeier, M. *The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets*. PLOS ONE, 10(3), 2015.
 - Wilcoxon, F. *Individual Comparisons by Ranking Methods*. Biometrics Bulletin, 1(6), 1945.
+- Labovitz, G., Chang, Y. S., Rosansky, V. *Making Quality Work: A Leadership Guide for the Results-Driven Manager*. HarperBusiness, 1993. Origine couramment citée de la règle « 1-10-100 » (prévention 1, correction 10, défaillance 100), qui fonde le critère de coût du mécanisme 1. Présentation : https://martech.org/assessing-impact-poor-data-1-10-100-rule (référence du livre à vérifier sur un exemplaire avant le mémoire).
