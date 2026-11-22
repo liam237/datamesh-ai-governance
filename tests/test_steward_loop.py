@@ -56,8 +56,8 @@ def test_l_examen_n_est_jamais_lance_automatiquement():
     import pathlib
     root = pathlib.Path(__file__).resolve().parents[1]
     pipeline = (root / "pipeline" / "run_all.py").read_text(encoding="utf-8")
-    assert "import main" in pipeline and "from evaluation.final_exam_mechanism1" not in pipeline
     forbidden = "final_exam_" + "mechanism1"   # découpé pour que ce test ne se détecte pas lui-même
+    assert "import main" in pipeline and "from evaluation." + forbidden not in pipeline
     for test in (root / "tests").glob("test_*.py"):
         assert forbidden not in test.read_text(encoding="utf-8")
 
