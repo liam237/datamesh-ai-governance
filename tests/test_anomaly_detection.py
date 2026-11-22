@@ -26,7 +26,7 @@ def test_le_mecanisme_ne_lit_jamais_la_verite_terrain():
 
 
 def test_log_montant_exclu_du_modele():
-    assert "log_montant" not in AD.MODEL_FEATURES and len(AD.MODEL_FEATURES) == 7
+    assert "log_montant" not in AD.MODEL_FEATURES and len(AD.MODEL_FEATURES) == 8
 
 
 @pytest.mark.parametrize("name", [*AD.UNSUPERVISED, *AD.SUPERVISED])

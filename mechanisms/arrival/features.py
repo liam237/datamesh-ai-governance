@@ -30,7 +30,11 @@ FEATURES = {
     "rarete_heure_canal": "Rareté de l'heure d'achat pour ce canal (section 7)",
     "log_delai_precedent": "Délai depuis l'achat précédent du client dans la catégorie (section 9)",
     "ecart_montant_precedent": "Écart de montant avec cet achat précédent (section 9)",
+    "log_achats_heure_precedente": "Achats du même client dans l'heure précédente, toutes catégories "
+                                   "(ajoutée à l'étape 5b, voir le journal de bord)",
 }
+
+BURST_WINDOW_MIN = 60            # fenêtre de la variable « rafale » : l'heure précédente
 
 
 def sales_scope(tx: pd.DataFrame) -> pd.DataFrame:
@@ -45,6 +49,19 @@ def sales_scope(tx: pd.DataFrame) -> pd.DataFrame:
 
 def _relative_to_group(values: pd.Series, groups: pd.Series) -> pd.Series:
     return values - values.groupby(groups).transform("median")
+
+
+def _recent_purchases(df: pd.DataFrame, minutes: int) -> np.ndarray:
+    """Nombre d'achats du même client dans les `minutes` précédant chaque vente (elle exclue)."""
+    out = np.zeros(len(df))
+    window = np.timedelta64(minutes, "m")
+    pos = pd.DataFrame({"client": df["client_id"].to_numpy(), "t": df["date_transaction"].to_numpy(),
+                        "i": np.arange(len(df))}).dropna(subset=["client"])
+    for _, g in pos.groupby("client"):
+        g = g.sort_values("t", kind="stable")
+        t = g["t"].to_numpy()
+        out[g["i"].to_numpy()] = np.arange(len(t)) - np.searchsorted(t, t - window, side="left")
+    return out
 
 
 def build_features(tx: pd.DataFrame) -> pd.DataFrame:
@@ -84,6 +101,11 @@ def build_features(tx: pd.DataFrame) -> pd.DataFrame:
     prev_gap = log_amount.loc[order].groupby(key).diff().abs()
     out.loc[order, "log_delai_precedent"] = np.log10(1 + delay.fillna(NO_PREVIOUS_MINUTES))
     out.loc[order, "ecart_montant_precedent"] = prev_gap.fillna(NO_PREVIOUS_GAP)
+
+    # Achats du même client dans l'heure précédente, toutes catégories confondues.
+    # Ajoutée à l'étape 5b : sur le jeu 2026, aucune variable ne décrivait plusieurs
+    # achats rapprochés dans des catégories différentes. log10(1 + n) : 0 = aucun.
+    out["log_achats_heure_precedente"] = np.log10(1 + _recent_purchases(df, BURST_WINDOW_MIN))
 
     out.index = df["transaction_id"].to_numpy()
     out.index.name = "transaction_id"

@@ -25,7 +25,7 @@ from sklearn.svm import OneClassSVM
 
 from mechanisms.arrival.features import FEATURES
 
-# log_montant est exclu : corrélé à 0,80 avec ecart_categorie (notebook 02, section 9).
+# log_montant est exclu (8 variables restent) : corrélé à 0,80 avec ecart_categorie (notebook 02, section 9).
 MODEL_FEATURES = [f for f in FEATURES if f != "log_montant"]
 
 OCSVM_MAX_TRAIN = 5_000   # One-Class SVM : coût en n², on l'entraîne sur un échantillon

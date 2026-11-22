@@ -60,3 +60,18 @@ def test_les_variables_ne_lisent_jamais_la_verite_terrain():
     import inspect
     from mechanisms.arrival import features
     assert "ground_truth" not in inspect.getsource(features)
+
+
+def test_variable_rafale_compte_les_achats_de_l_heure_precedente(tx):
+    base = sales_scope(tx).iloc[[0]].copy()
+    base["client_id"] = "CLT-888888"
+    t0 = base["date_transaction"].iloc[0]
+    rows = []
+    for i, minutes in enumerate([0, 10, 20, 50, 200]):      # 4 achats en 50 min, puis un tardif
+        r = base.copy()
+        r["transaction_id"] = f"TXN-8888888{i}"
+        r["date_transaction"] = t0 + pd.Timedelta(minutes=minutes)
+        rows.append(r)
+    X = build_features(pd.concat(rows))
+    n = 10 ** X["log_achats_heure_precedente"] - 1
+    assert n.round().astype(int).tolist() == [0, 1, 2, 3, 0]
